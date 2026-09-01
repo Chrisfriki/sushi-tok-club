@@ -176,3 +176,76 @@ export async function getLevelAnalytics(): Promise<LevelAnalyticsRow[]> {
     }
   })
 }
+
+export type CampaignPrizeRow = {
+  name: string
+  generated: number
+  claimed: number
+  available: number
+  redeemed: number
+  expired: number
+}
+
+export async function getCampaignPrizeAnalytics(
+  campaignId: string,
+): Promise<CampaignPrizeRow[]> {
+  const supabase = await createClient()
+  const { data: defs } = await supabase
+    .from("reward_definitions")
+    .select("id, name")
+    .order("name")
+  const { data: codes } = await supabase
+    .from("codes")
+    .select("reward_definition_id, status")
+    .eq("campaign_id", campaignId)
+  const { data: rewards } = await supabase
+    .from("user_rewards")
+    .select("reward_definition_id, status")
+    .eq("campaign_id", campaignId)
+
+  const rows: CampaignPrizeRow[] = []
+  for (const def of defs ?? []) {
+    const defId = (def as { id: string }).id
+    const defCodes = (codes ?? []).filter((c) => (c as any).reward_definition_id === defId)
+    if (defCodes.length === 0) continue
+    const defRewards = (rewards ?? []).filter((r) => (r as any).reward_definition_id === defId)
+    rows.push({
+      name: (def as any).name,
+      generated: defCodes.length,
+      claimed: defCodes.filter((c) => (c as any).status === "CLAIMED").length,
+      available: defRewards.filter((r) => (r as any).status === "AVAILABLE").length,
+      redeemed: defRewards.filter((r) => (r as any).status === "REDEEMED").length,
+      expired: defRewards.filter((r) => (r as any).status === "EXPIRED").length,
+    })
+  }
+  return rows
+}
+
+export async function getCampaignLevelAnalytics(
+  campaignId: string,
+): Promise<LevelAnalyticsRow[]> {
+  const supabase = await createClient()
+  const levels = ["BAJO", "MEDIO", "ALTO", "PREMIUM"] as const
+  const { data: codes } = await supabase
+    .from("codes")
+    .select("level, status")
+    .eq("campaign_id", campaignId)
+  const { data: rewards } = await supabase
+    .from("user_rewards")
+    .select("level, status")
+    .eq("campaign_id", campaignId)
+
+  return levels.map((level) => {
+    const levelCodes = (codes ?? []).filter((c) => (c as any).level === level)
+    const levelRewards = (rewards ?? []).filter((r) => (r as any).level === level)
+    const claimed = levelCodes.filter((c) => (c as any).status === "CLAIMED").length
+    const redeemed = levelRewards.filter((r) => (r as any).status === "REDEEMED").length
+    return {
+      level,
+      codes: levelCodes.length,
+      claimed,
+      redeemed,
+      redemptionRate: levelRewards.length ? redeemed / levelRewards.length : 0,
+    }
+  })
+}

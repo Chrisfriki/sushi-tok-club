@@ -134,6 +134,44 @@ export async function setCampaignStatusAction(
   return { ok: true }
 }
 
+/* ---------------- Codes ---------------- */
+
+export async function setCodeStatusAction(
+  codeId: string,
+  status: "AVAILABLE" | "BLOCKED",
+): Promise<Result> {
+  await assertAdmin()
+  const supabase = await createClient()
+
+  // Never silently modify a claimed code — guard and audit.
+  const { data: code } = await supabase
+    .from("codes")
+    .select("id, status, code")
+    .eq("id", codeId)
+    .single()
+  if (!code) return { ok: false, error: "Código no encontrado." }
+  if (code.status === "CLAIMED") {
+    return { ok: false, error: "No se puede modificar un código ya reclamado." }
+  }
+
+  const { error } = await supabase.from("codes").update({ status }).eq("id", codeId)
+  if (error) return { ok: false, error: error.message }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  await supabase.from("audit_logs").insert({
+    actor_user_id: user?.id ?? null,
+    action: status === "BLOCKED" ? "CODE_BLOCKED" : "CODE_UNBLOCKED",
+    entity_type: "codes",
+    entity_id: codeId,
+    metadata: { code: code.code, from: code.status, to: status },
+  })
+
+  revalidatePath("/admin/codes")
+  return { ok: true }
+}
+
 /* ---------------- Staff management ---------------- */
 
 const staffSchema = z.object({
