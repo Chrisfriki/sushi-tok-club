@@ -3,6 +3,7 @@
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getSessionProfile, defaultPathForRole } from '@/lib/auth'
 import { TERMS_VERSION } from '@/lib/constants'
 
 const registerSchema = z.object({
@@ -20,7 +21,14 @@ const registerSchema = z.object({
   marketing_consent: z.boolean().optional().default(false),
 })
 
-export type ActionResult = { ok: boolean; error?: string }
+export type ActionResult = { ok: boolean; error?: string; redirectTo?: string }
+
+/** Resolve the signed-in user's role and map it to their landing path. */
+async function resolveRedirect(next?: string | null): Promise<string> {
+  if (next && next.startsWith('/') && !next.startsWith('//')) return next
+  const profile = await getSessionProfile()
+  return profile ? defaultPathForRole(profile.role) : '/app'
+}
 
 export async function registerAction(
   _prev: ActionResult | null,
@@ -111,7 +119,8 @@ export async function registerAction(
     return { ok: false, error: 'Cuenta creada, pero no se pudo iniciar sesión. Prueba a iniciar sesión.' }
   }
 
-  return { ok: true }
+  const next = formData.get('next') as string | null
+  return { ok: true, redirectTo: await resolveRedirect(next) }
 }
 
 const loginSchema = z.object({
@@ -148,7 +157,8 @@ export async function loginAction(
     return { ok: false, error: 'Email o contraseña incorrectos.' }
   }
 
-  return { ok: true }
+  const next = formData.get('next') as string | null
+  return { ok: true, redirectTo: await resolveRedirect(next) }
 }
 
 export async function logoutAction(): Promise<void> {

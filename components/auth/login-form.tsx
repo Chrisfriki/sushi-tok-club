@@ -17,14 +17,14 @@ export function LoginForm({ next }: { next?: string }) {
   )
 
   useEffect(() => {
-    if (state?.ok) {
-      const q = next ? `?next=${encodeURIComponent(next)}` : ''
-      router.replace(`/post-auth${q}`)
+    if (state?.ok && state.redirectTo) {
+      router.replace(state.redirectTo)
     }
-  }, [state, next, router])
+  }, [state, router])
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      {next ? <input type="hidden" name="next" value={next} /> : null}
       <div className="grid gap-1.5">
         <Label htmlFor="email">Email</Label>
         <Input
