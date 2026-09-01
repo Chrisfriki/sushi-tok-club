@@ -296,6 +296,55 @@ export async function resetStaffPasswordAction(
   return { ok: true }
 }
 
+export async function sendStaffPasswordResetEmailAction(
+  userId: string,
+): Promise<ResetResult> {
+  await assertAdmin()
+
+  const admin = createAdminClient()
+
+  // Only allow sending reset links to staff/manager/admin accounts.
+  const { data: target } = await admin
+    .from("profiles")
+    .select("id, role, email")
+    .eq("id", userId)
+    .single()
+  if (!target || !["staff", "manager", "admin"].includes(target.role)) {
+    return { ok: false, error: "Empleado no encontrado." }
+  }
+  if (!target.email) {
+    return { ok: false, error: "Este empleado no tiene un correo asignado." }
+  }
+
+  // Route the recovery link through the v0 redirect proxy so it reaches the
+  // app's /auth/callback route, then on to the update-password page.
+  const base =
+    process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ??
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/callback`
+  const redirectTo = `${base}${base.includes("?") ? "&" : "?"}next=${encodeURIComponent(
+    "/account/update-password",
+  )}`
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.resetPasswordForEmail(target.email, {
+    redirectTo,
+  })
+  if (error) return { ok: false, error: error.message }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  await admin.from("audit_logs").insert({
+    actor_user_id: user?.id ?? null,
+    action: "STAFF_PASSWORD_RESET_EMAIL_SENT",
+    entity_type: "profiles",
+    entity_id: userId,
+    metadata: { email: target.email },
+  })
+
+  return { ok: true }
+}
+
 function slugify(input: string): string {
   return input
     .toLowerCase()
