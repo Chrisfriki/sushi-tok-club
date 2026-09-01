@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Gift, Sparkles, Ban, XCircle, Clock } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Logo } from '@/components/brand/logo'
 import { DiscoverButton } from '@/components/claim/discover-button'
 import { createClient } from '@/lib/supabase/server'
@@ -152,9 +153,12 @@ function ErrorState({ title, message }: { title: string; message: string }) {
       </div>
       <h1 className="mt-6 font-display text-2xl font-bold">{title}</h1>
       <p className="mt-2 text-pretty text-muted-foreground">{message}</p>
-      <Button asChild variant="outline" className="mt-8">
-        <Link href="/app">Ir a mi cuenta</Link>
-      </Button>
+      <Link
+        href="/app"
+        className={cn(buttonVariants({ variant: 'outline' }), 'mt-8')}
+      >
+        Ir a mi cuenta
+      </Link>
     </div>
   )
 }

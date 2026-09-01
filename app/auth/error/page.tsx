@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Logo } from '@/components/brand/logo'
 
 export default function AuthErrorPage() {
@@ -12,9 +13,15 @@ export default function AuthErrorPage() {
           No hemos podido completar la autenticación. Inténtalo de nuevo.
         </p>
       </div>
-      <Button asChild className="bg-coral text-coral-foreground hover:bg-coral/90">
-        <Link href="/login">Volver a iniciar sesión</Link>
-      </Button>
+      <Link
+        href="/login"
+        className={cn(
+          buttonVariants(),
+          'bg-coral text-coral-foreground hover:bg-coral/90',
+        )}
+      >
+        Volver a iniciar sesión
+      </Link>
     </main>
   )
 }

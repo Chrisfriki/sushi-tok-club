@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, QrCode, Gift, Ticket, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Logo } from '@/components/brand/logo'
 import { getSessionProfile } from '@/lib/auth'
 import { defaultPathForRole } from '@/lib/auth'
@@ -16,9 +17,12 @@ export default async function LandingPage() {
       <header className="flex items-center justify-between">
         <Logo />
         {!profile && (
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/login">Entrar</Link>
-          </Button>
+          <Link
+            href="/login"
+            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+          >
+            Entrar
+          </Link>
         )}
       </header>
 
@@ -77,12 +81,16 @@ export default async function LandingPage() {
 
       {/* CTA */}
       <div className="mt-8 flex flex-col gap-3">
-        <Button asChild size="lg" className="h-13 bg-coral text-coral-foreground hover:bg-coral/90">
-          <Link href={primaryHref}>
-            {primaryLabel}
-            <ArrowRight className="size-4" />
-          </Link>
-        </Button>
+        <Link
+          href={primaryHref}
+          className={cn(
+            buttonVariants({ size: 'lg' }),
+            'h-13 bg-coral text-coral-foreground hover:bg-coral/90',
+          )}
+        >
+          {primaryLabel}
+          <ArrowRight className="size-4" />
+        </Link>
         {!profile && (
           <p className="text-center text-sm text-muted-foreground">
             ¿Ya tienes cuenta?{' '}

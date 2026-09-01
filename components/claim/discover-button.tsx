@@ -27,7 +27,7 @@ export function DiscoverButton({
     startTransition(async () => {
       const res = await claimCodeAction(code)
       if (res.ok) {
-        router.replace(`/app/reveal/${res.userRewardId}`)
+        router.replace(`/reveal/${res.userRewardId}`)
       } else {
         setError(claimErrorMessage(res.error))
       }
