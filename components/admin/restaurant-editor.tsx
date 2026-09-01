@@ -34,7 +34,7 @@ export function RestaurantEditor({ restaurant }: { restaurant?: Restaurant }) {
     setSaving(true)
     formData.set("active", active ? "on" : "")
     if (restaurant) formData.set("id", restaurant.id)
-    const res = await saveRestaurantAction(formData)
+    const res = await saveRestaurantAction(null, formData)
     setSaving(false)
     if (res.ok) {
       toast.success("Restaurante guardado")

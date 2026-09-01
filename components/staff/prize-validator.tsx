@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
@@ -102,10 +103,7 @@ export function PrizeValidator({ restaurants }: { restaurants: Restaurant[] }) {
     return (
       <div className="flex flex-col gap-4">
         <div className="rounded-2xl border border-border bg-card p-5">
-          <Badge
-            className="mb-3"
-            style={{ backgroundColor: meta.color, color: "#fff" }}
-          >
+          <Badge variant="outline" className={cn("mb-3", meta.bg, meta.text, meta.ring)}>
             {meta.label}
           </Badge>
           <h2 className="text-2xl font-bold text-balance">

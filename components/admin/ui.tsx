@@ -5,10 +5,12 @@ export function PageHeader({
   title,
   description,
   action,
+  children,
 }: {
   title: string
   description?: string
   action?: ReactNode
+  children?: ReactNode
 }) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -19,6 +21,7 @@ export function PageHeader({
         ) : null}
       </div>
       {action}
+      {children}
     </div>
   )
 }
