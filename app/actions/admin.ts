@@ -246,6 +246,56 @@ export async function updateStaffRoleAction(
   return { ok: true }
 }
 
+const resetPasswordSchema = z.object({
+  userId: z.string().uuid(),
+  password: z.string().min(8),
+})
+
+type ResetResult = { ok: true } | { ok: false; error: string }
+
+export async function resetStaffPasswordAction(
+  userId: string,
+  password: string,
+): Promise<ResetResult> {
+  await assertAdmin()
+  const parsed = resetPasswordSchema.safeParse({ userId, password })
+  if (!parsed.success) {
+    return { ok: false, error: "La contraseña debe tener al menos 8 caracteres." }
+  }
+
+  const admin = createAdminClient()
+
+  // Only allow resetting passwords of staff/manager/admin accounts.
+  const { data: target } = await admin
+    .from("profiles")
+    .select("id, role, email")
+    .eq("id", parsed.data.userId)
+    .single()
+  if (!target || !["staff", "manager", "admin"].includes(target.role)) {
+    return { ok: false, error: "Empleado no encontrado." }
+  }
+
+  const { error } = await admin.auth.admin.updateUserById(parsed.data.userId, {
+    password: parsed.data.password,
+  })
+  if (error) return { ok: false, error: error.message }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  await admin.from("audit_logs").insert({
+    actor_user_id: user?.id ?? null,
+    action: "STAFF_PASSWORD_RESET",
+    entity_type: "profiles",
+    entity_id: parsed.data.userId,
+    metadata: { email: target.email },
+  })
+
+  revalidatePath("/admin/staff")
+  return { ok: true }
+}
+
 function slugify(input: string): string {
   return input
     .toLowerCase()

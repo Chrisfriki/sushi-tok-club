@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { PageHeader } from "@/components/admin/ui"
 import { StaffCreator } from "@/components/admin/staff-creator"
+import { StaffPasswordReset } from "@/components/admin/staff-password-reset"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -53,6 +54,7 @@ export default async function StaffPage() {
                 <TableHead>Rol</TableHead>
                 <TableHead>Restaurantes</TableHead>
                 <TableHead>Alta</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -74,6 +76,13 @@ export default async function StaffPage() {
                       .join(", ") || "—"}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{formatDate(s.created_at)}</TableCell>
+                  <TableCell className="text-right">
+                    <StaffPasswordReset
+                      userId={s.id}
+                      name={`${s.first_name ?? ""} ${s.last_name ?? ""}`.trim()}
+                      email={s.email ?? ""}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
