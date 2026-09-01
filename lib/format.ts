@@ -16,6 +16,15 @@ const dateTimeFmt = new Intl.DateTimeFormat('es-ES', {
   minute: '2-digit',
 })
 
+/** Formats a 0-1 ratio as a percentage string, e.g. 0.421 -> "42,1 %". */
+export function percent(ratio: number, digits = 1): string {
+  if (!Number.isFinite(ratio)) return '0 %'
+  return `${(ratio * 100).toLocaleString('es-ES', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: digits,
+  })} %`
+}
+
 export function formatDate(value?: string | null): string {
   if (!value) return '—'
   return dateFmt.format(new Date(value))
