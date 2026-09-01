@@ -101,7 +101,11 @@ export function CustomersTable({
             </TableHeader>
             <TableBody>
               {customers.map((c) => (
-                <TableRow key={c.id}>
+                <TableRow
+                  key={c.id}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/admin/customers/${c.id}`)}
+                >
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="flex flex-col text-xs">
